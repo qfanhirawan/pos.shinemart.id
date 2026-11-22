@@ -1,0 +1,78 @@
+====================================================================
+PANDUAN INSTALASI & OPERASIONAL SHINEMART WEB POS (FULL CLOUD)
+====================================================================
+
+Website Utama : https://pos.shinemart.id/       (Mobile Owner Monitor)
+Aplikasi Web POS : https://pos.shinemart.id/pos/ (Kasir, Master, Stok, Laporan)
+
+--------------------------------------------------------------------
+LANGKAH 1 — PASANG SKEMA DATABASE WEB POS DI SUPABASE
+--------------------------------------------------------------------
+1. Login ke Supabase Dashboard project Anda (https://supabase.com/dashboard).
+2. Buka menu "SQL Editor" -> "+ New query".
+3. Buka file "Database/supabase_webpos_schema.sql" lalu copy-paste seluruh
+   isinya ke SQL Editor dan klik "Run".
+   (Catatan: Semua tabel baru memakai awalan wp_ sehingga aman berjalan
+    berdampingan dengan tabel cloud_* lama tanpa mengganggu Monitor HP).
+
+--------------------------------------------------------------------
+LANGKAH 2 — MIGRASI DATA DARI MYSQL LOKAL (CABANG 1 & CABANG 2)
+--------------------------------------------------------------------
+Jalankan skrip migrasi pada masing-masing PC Kasir lama (Cabang 1 dan Cabang 2):
+  python Database/migrate_mysql_to_webpos.py
+
+Jika ingin menentukan kode cabang manual:
+  python Database/migrate_mysql_to_webpos.py --branch CAB-01 --branch-name "ShineMart Cabang 1"
+
+Skrip hanya MEMBACA pos_db lokal (aman, tidak mengubah MySQL) dan menghasilkan:
+  Database/migrated_data_<CABANG>.sql
+
+Buka file SQL hasil tersebut -> copy-paste ke Supabase SQL Editor -> klik "Run".
+Semua akun kasir/admin (beserta password & PIN Supervisor), role/hak akses,
+1.348 produk, satuan, harga grosir/promo, virtual bundle, stok akhir, serta
+riwayat transaksi otomatis termigrasi tanpa reset password.
+
+--------------------------------------------------------------------
+LANGKAH 3 — UPLOAD WEBSITE KE HOSTING (pos.shinemart.id)
+--------------------------------------------------------------------
+Pastikan konfigurasi di "pos-shinemart-web/config.js" sudah sesuai URL &
+Publishable/Anon Key Supabase Anda.
+Lalu upload seluruh isi folder "pos-shinemart-web/" (termasuk folder "pos/")
+ke hosting pos.shinemart.id (atau push ke GitHub Pages repository Anda).
+
+--------------------------------------------------------------------
+LANGKAH 4 — PASANG PRINTER BRIDGE DI PC KASIR (WINDOWS 7 / 10 / 11)
+--------------------------------------------------------------------
+Browser tidak bisa mengirim perintah ESC/POS RAW langsung ke printer thermal
+tanpa dialog cetak, sehingga digunakan agent lokal ringan POSPrintAgent.exe:
+1. Ambil hasil compile Release dari folder:
+     src/POSPrintAgent/bin/Release/net48/POSPrintAgent.exe
+   (Pastikan PC kasir memiliki .NET Framework 4.8).
+2. Letakkan POSPrintAgent.exe di PC kasir (misal C:\ShineMart\POSPrintAgent.exe)
+   dan buat shortcut di Startup Windows (Win+R -> ketik: shell:startup) agar
+   otomatis berjalan tiap kali PC dinyalakan.
+3. Agent mendengar di http://127.0.0.1:9123 tanpa perlu hak Administrator.
+4. Di Web POS, lihat status bar bawah atau bar atas Kasir:
+   - Hijau ("Printer: <Nama> - Siap") = Siap cetak otomatis tanpa popup.
+   - Klik tulisan status printer untuk memilih printer, ubah mode AUTO/RAW/WINDOWS,
+     ukuran kertas 58/80mm, auto-cut, header toko, dan Test Print.
+
+--------------------------------------------------------------------
+LANGKAH 5 — CARA OPERASIONAL DOUBLE DISPLAY (MONITOR 2 PELANGGAN)
+--------------------------------------------------------------------
+1. Di Windows, atur Display Settings -> Multiple Displays -> Extend these displays.
+2. Pada Web POS, klik tombol "Layar Pelanggan (2)" di Sidebar atau Topbar Kasir.
+3. Jendela popup Layar Pelanggan (#/customer-display?branch=CAB-01) akan terbuka.
+4. Geser jendela tersebut ke Monitor 2 (menghadap pembeli) lalu klik tombol
+   "Fullscreen (F11)" agar tampil penuh.
+5. Alternatif otomatis untuk PC Kasir tetap bisa menggunakan file batch contoh:
+     scripts/Buka-Kasir-DualDisplay.bat
+   (Edit koordinat --window-position=1366,0 sesuai resolusi Monitor 1 PC Anda).
+
+Catatan Penting Windows 7:
+- Gunakan Google Chrome versi 109 (versi terakhir resmi Windows 7) atau Microsoft
+  Edge 109. Aplikasi Web POS sudah di-build khusus menargetkan target chrome109.
+- Saat pertama kali Web POS menghubungi http://127.0.0.1:9123 dari HTTPS
+  (pos.shinemart.id), jika Chrome memunculkan izin Local/Private Network Access,
+  klik "Allow".
+====================================================================
