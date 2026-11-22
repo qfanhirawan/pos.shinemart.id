@@ -718,7 +718,41 @@
     return null;
   }
 
-  function openNewProductModal() {
+  async function generateNextSkuForBranch(branchCode) {
+    try {
+      const { data } = await sb
+        .from("cloud_products")
+        .select("sku")
+        .eq("branch_code", branchCode)
+        .ilike("sku", "PRD-%")
+        .limit(2000);
+
+      let maxNum = 0;
+      const existing = new Set();
+      (data || []).forEach((row) => {
+        const s = String(row.sku || "").trim();
+        if (!s) return;
+        existing.add(s.toUpperCase());
+        const m = /^PRD-(\d+)$/i.exec(s);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (!isNaN(n) && n > maxNum) maxNum = n;
+        }
+      });
+
+      let next = maxNum + 1;
+      let candidate = `PRD-${String(next).padStart(3, "0")}`;
+      while (existing.has(candidate.toUpperCase())) {
+        next++;
+        candidate = `PRD-${String(next).padStart(3, "0")}`;
+      }
+      return candidate;
+    } catch {
+      return "PRD-001";
+    }
+  }
+
+  async function openNewProductModal() {
     const targetBranch = resolveEditableBranch(null);
     if (!targetBranch) {
       showToast("Pilih cabang spesifik dulu sebelum menambah produk baru.");
@@ -728,7 +762,7 @@
     el("prodModalTitle").textContent = `Tambah Produk Baru (${targetBranch})`;
     el("editProdLocalId").value = "0";
     el("editProdBranchCode").value = targetBranch;
-    el("editSku").value = "";
+    el("editSku").value = "Membuat SKU...";
     el("editSku").readOnly = false;
     el("editBarcode").value = "";
     el("editName").value = "";
@@ -741,6 +775,11 @@
     el("editMinStock").value = "5";
     el("editIsActive").checked = true;
     el("modalProductEdit").classList.remove("hidden");
+
+    const nextSku = await generateNextSkuForBranch(targetBranch);
+    if (el("editProdLocalId").value === "0") {
+      el("editSku").value = nextSku;
+    }
   }
 
   function openEditProductModal(p) {
