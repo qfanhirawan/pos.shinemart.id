@@ -1,0 +1,56 @@
+====================================================================
+PANDUAN INSTALASI & OPERASIONAL SHINEMART WEB POS (FULL CLOUD)
+====================================================================
+
+Website Utama : https://pos.shinemart.id/
+
+--------------------------------------------------------------------
+LANGKAH 1 — PASANG / UPDATE SKEMA DATABASE DI SUPABASE
+--------------------------------------------------------------------
+1. Login ke Supabase Dashboard project Anda (https://supabase.com/dashboard).
+2. Buka menu "SQL Editor" -> "+ New query".
+3. Buka file "Database/supabase_webpos_schema.sql" lalu copy-paste seluruh
+   isinya ke SQL Editor dan klik "Run".
+4. Jika belum mengimport data produk awal cabang CAB-02, jalankan juga isi
+   file "Database/migrated_data_CAB-02.sql" di SQL Editor -> "Run".
+
+--------------------------------------------------------------------
+LANGKAH 2 — UPLOAD WEBSITE KE REPOSITORY GITHUB (pos.shinemart.id)
+--------------------------------------------------------------------
+1. Di repository GitHub "pos.shinemart.id", PERTAHANKAN file "CNAME"
+   (dan "README.md"), serta hapus file lama (app.js, styles.css, folder pos/).
+2. Masuk ke dalam folder "pos-shinemart-web/", lalu upload file-file ini ke
+   halaman utama repository GitHub:
+   - index.html
+   - config.js
+   - folder assets/ (beserta seluruh isinya)
+   (Jangan ikut meng-upload file PANDUAN_WEBPOS.txt agar repo tetap bersih).
+3. Tunggu ~1 menit sampai deploy GitHub Pages selesai, lalu buka:
+   https://pos.shinemart.id/
+
+--------------------------------------------------------------------
+LANGKAH 3 — PASANG PRINTER BRIDGE DI PC KASIR (WINDOWS 7 / 10 / 11)
+--------------------------------------------------------------------
+1. Ambil file hasil compile Release:
+     src/POSPrintAgent/bin/Release/net48/POSPrintAgent.exe
+   (Pastikan PC kasir memiliki .NET Framework 4.8).
+2. Letakkan POSPrintAgent.exe di PC kasir dan tambahkan ke Startup Windows
+   (Win+R -> ketik: shell:startup) agar aktif otomatis saat PC dinyalakan.
+3. Di Web POS, klik indikator Printer di pojok kanan/bawah untuk memilih
+   printer thermal Windows, mode AUTO/RAW/WINDOWS, 58/80mm, auto-cut,
+   header toko, dan Test Print.
+
+--------------------------------------------------------------------
+LANGKAH 4 — OPERASIONAL DOUBLE DISPLAY (MONITOR 2 PELANGGAN)
+--------------------------------------------------------------------
+1. Di Windows, atur Display Settings -> Multiple Displays -> Extend.
+2. Pada layar Web POS, klik "Layar Pelanggan (2)" di Sidebar atau Topbar Kasir.
+3. Jendela Layar Pelanggan (/#/customer-display?branch=...) akan terbuka.
+4. Geser jendela tersebut ke Monitor 2 lalu klik "Fullscreen (F11)".
+   Alternatif otomatis: jalankan scripts/Buka-Kasir-DualDisplay.bat.
+
+Catatan Windows 7:
+- Gunakan Google Chrome versi 109 (target build Web POS sudah disesuaikan).
+- Saat browser meminta izin Local/Private Network Access ke http://127.0.0.1:9123,
+  klik "Allow" agar cetak otomatis berjalan tanpa dialog print.
+====================================================================
